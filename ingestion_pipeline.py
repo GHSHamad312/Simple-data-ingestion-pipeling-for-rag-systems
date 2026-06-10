@@ -2,11 +2,8 @@ import os
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from dotenv import load_dotenv
 
-load_dotenv
 
 def doc_loader(docpath):
     loader=DirectoryLoader(
@@ -32,7 +29,7 @@ def chunker(documents,chunksize, chunkoverlap):
 
 def vector_store(chunks, presist_loaction):
     embeddings = HuggingFaceEmbeddings(
-    model_name="all-MiniLM-L6-v2"
+    model_name="BAAI/bge-small-en-v1.5"
 )   
     store=Chroma.from_documents(
         documents=chunks,
@@ -41,21 +38,14 @@ def vector_store(chunks, presist_loaction):
         collection_metadata={"hnsw:space":"cosine"}
         
     )
-    print("\n--- CHROMA DATA PREVIEW ---")
-
-    data = store.get(include=["documents", "metadatas"])
-    for i in range(min(5, len(data["documents"]))):
-        print("\nDOC:", data["documents"][i])
-        print("META:", data["metadatas"][i])
-
-    print("\nTotal chunks:", store._collection.count())
+   
     return store
 
 
 def main():
     print("this is main")
     documents=doc_loader("./documents/")
-    chunks =chunker(documents, 1000, 10)
+    chunks =chunker(documents, 1000, 200)
     store= vector_store(chunks, "db/chromadb")
 
 
